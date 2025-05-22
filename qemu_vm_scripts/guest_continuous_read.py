@@ -31,6 +31,7 @@ def main():
                 time.sleep(POLL_INTERVAL)
             except OSError:
                 # Bus not ready or NACK; wait and retry
+                print("nothing!!")
                 time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":

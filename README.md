@@ -20,3 +20,8 @@ make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabihf- menuconfig
 make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabihf- zImage modules dtbs -j$(nproc)
 
 ```
+
+3.
+```
+GIT_SSL_NO_VERIFY=1 git clone https://github.com/…
+```
