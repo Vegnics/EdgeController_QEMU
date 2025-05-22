@@ -1,0 +1,1 @@
+cp virt_arm32_patched.dts ./buildroot/output/build/linux-6.1/arch/arm/boot/dts/

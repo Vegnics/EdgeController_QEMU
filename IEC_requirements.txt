@@ -1,0 +1,1 @@
+pacman -Sy ninja meson glib2 glib2-devel
