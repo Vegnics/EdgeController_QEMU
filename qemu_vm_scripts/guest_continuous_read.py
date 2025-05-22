@@ -35,6 +35,15 @@ def read_bytes(bus):
         data.append(byte)
     return data
 
+def clear_buffer(bus):
+    """Write zeroes to all registers to clear the buffer."""
+    for reg in range(LENGTH):
+        try:
+            bus.write_byte_data(ADDR, reg, 0x00)
+        except OSError:
+            # Ignore write errors
+            pass
+
 def main():
     prev = None
     with SMBus(BUS) as bus:
@@ -44,6 +53,7 @@ def main():
             if data is not None and data != prev:
                 print("Received data:", [f"0x{b:02X}" for b in data])
                 prev = data
+                clear_buffer(bus)
             time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":
