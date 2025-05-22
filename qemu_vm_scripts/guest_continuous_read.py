@@ -1,38 +1,50 @@
-import time
+#!/usr/bin/env python3
+"""
+i2c_listener_safe.py
 
-# Attempt to import SMBus and provide instruction if missing
+Continuously polls an I²C device by reading each byte register
+individually (via SMBus read_byte_data) to avoid hangs or unsupported
+ioctls, and prints whenever a new payload appears.
+"""
+
+import time
+import sys
+
+# Try importing SMBus, instruct if missing
 try:
     from smbus2 import SMBus
 except ImportError:
     print("Error: 'smbus2' module not found. Please install it with:\n\n    pip install smbus2\n")
-    exit(1)
+    sys.exit(1)
 
 # Configuration
-BUS = 0            # I2C bus number (/dev/i2c-0)
-ADDR = 0x1C        # I2C slave address
-REGISTER = 0x00    # Register to read from
-LENGTH = 4         # Number of bytes to read
-POLL_INTERVAL = 0.1  # Seconds between polls
+BUS = 0              # I²C bus number (/dev/i2c-0)
+ADDR = 0x1C          # I²C slave address
+LENGTH = 4           # Number of bytes to read (registers 0x00 .. 0x03)
+POLL_INTERVAL = 0.5  # Seconds between polls
 
-def read_data(bus):
-    """Read a block of bytes from the I2C device."""
-    return bus.read_i2c_block_data(ADDR, REGISTER, LENGTH)
+def read_bytes(bus):
+    """Read LENGTH bytes, one register at a time."""
+    data = []
+    for reg in range(LENGTH):
+        try:
+            byte = bus.read_byte_data(ADDR, reg)
+        except OSError:
+            # NACK or bus error; no valid data right now
+            return None
+        data.append(byte)
+    return data
 
 def main():
-    prev_data = None
+    prev = None
     with SMBus(BUS) as bus:
-        print(f"Listening for data on I2C bus {BUS}, address 0x{ADDR:02X}...")
+        print(f"Listening for new data on I²C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
         while True:
-            try:
-                data = read_data(bus)
-                if data != prev_data or True:
-                    print("Received data:", [hex(b) for b in data])
-                    prev_data = list(data)
-                time.sleep(POLL_INTERVAL)
-            except OSError:
-                # Bus not ready or NACK; wait and retry
-                print("nothing!!")
-                time.sleep(POLL_INTERVAL)
+            data = read_bytes(bus)
+            if data is not None and data != prev:
+                print("Received data:", [f"0x{b:02X}" for b in data])
+                prev = data
+            time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":
     main()
