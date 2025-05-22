@@ -25,7 +25,7 @@ def main():
         while True:
             try:
                 data = read_data(bus)
-                if data != prev_data:
+                if data != prev_data or True:
                     print("Received data:", [hex(b) for b in data])
                     prev_data = list(data)
                 time.sleep(POLL_INTERVAL)
