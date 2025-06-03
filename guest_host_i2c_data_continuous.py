@@ -69,7 +69,7 @@ if __name__ == "__main__":
     for k in range(len(bytes_s2)//2):
         PAYLOAD= bytes_s1[2*k:2*(k+1)]+bytes_s2[2*k:2*(k+1)]
         send_data(HOST_BUS, SLAVE_ADDR, PAYLOAD)
-        sleep(0.08)
+        sleep(0.13)
     plt.plot(y_signal1)
     plt.title("Sensor 1 Data (Sent over I2C)")
     plt.xlabel("Sample idx")

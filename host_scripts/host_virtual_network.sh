@@ -5,16 +5,20 @@ sudo ip link set br0 up
 # Create TAP interfaces for VMs
 sudo ip tuntap add dev tap0 mode tap user $USER
 sudo ip tuntap add dev tap1 mode tap user $USER
+sudo ip tuntap add dev tap2 mode tap user $USER
 sudo ip link set tap0 up
 sudo ip link set tap1 up
+sudo ip link set tap2 up
 
 # Add TAPs to bridge
 sudo ip link set tap0 master br0
 sudo ip link set tap1 master br0
+sudo ip link set tap2 master br0
 
-# Optional: disable bridge port isolation (this is important!)
+# disable bridge port isolation 
 sudo bridge link set dev tap0 isolated off
 sudo bridge link set dev tap1 isolated off
+sudo bridge link set dev tap2 isolated off
 
 
 echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
@@ -27,7 +31,7 @@ sudo ip tuntap add dev monitor0 mode tap user $USER
 sudo ip link set monitor0 master br0
 sudo ip link set monitor0 up
 
-# Assign host-side IP to the bridge (correct!)
+# Assign host-side IP to the bridge 
 sudo ip addr add 172.24.100.1/24 dev br0
 ip link set br0 promisc on ## Setting the bridge to promiscuous mode
 sudo bridge fdb flush dev br0

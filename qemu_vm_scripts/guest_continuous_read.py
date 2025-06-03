@@ -137,8 +137,8 @@ def main():
 
     prev = None
 
-    sensor1 = FakeSensorI2C(alpha=0.86,timeout=1.0)
-    sensor2 = FakeSensorI2C(alpha=0.86,timeout=1.0)
+    sensor1 = FakeSensorI2C(alpha=0.6,timeout=1.0)
+    sensor2 = FakeSensorI2C(alpha=0.6,timeout=1.0)
 
     with SMBus(BUS) as bus:
         print(f"Listening for new data on I2C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
