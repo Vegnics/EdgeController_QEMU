@@ -29,4 +29,5 @@ sudo ip link set monitor0 up
 
 # Assign host-side IP to the bridge (correct!)
 sudo ip addr add 172.24.100.1/24 dev br0
+ip link set br0 promisc on ## Setting the bridge to promiscuous mode
 sudo bridge fdb flush dev br0
