@@ -75,7 +75,7 @@ def main():
         while True:
             data = read_bytes(bus)
             if data is not None and data != prev:
-                if not any(data):
+                if any(data):
                     print("Received data:", [f"0x{b:02X}" for b in data])
                     prev = data
                     clear_buffer(bus)
