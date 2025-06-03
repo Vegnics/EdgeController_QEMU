@@ -21,7 +21,7 @@ except ImportError:
     print("Error: 'smbus2' module not found. Please install it with:\n\n    pip install smbus2\n")
     sys.exit(1)
 
-
+SEND_LOCK = threading.Lock()
 MONITOR_IP = "172.24.100.9"
 MONITOR_PORT = 5555
 
@@ -49,12 +49,13 @@ def clear_buffer(bus,length,addr):
             pass
 
 def send_data_udp_monitor(payload):
-    pkt = (
-    IP(dst=MONITOR_IP) /
-    UDP(sport=12345, dport=MONITOR_PORT) /
-    Raw(load=payload)
-    )   
-    sendp(pkt, iface="eth0", verbose=False)
+    with SEND_LOCK:
+        pkt = (
+        IP(dst=MONITOR_IP) /
+        UDP(sport=12345, dport=MONITOR_PORT) /
+        Raw(load=payload)
+        )   
+        send(pkt, verbose=False)
     return
 
 class FakeSensorI2C():
@@ -121,11 +122,11 @@ parser.add_argument("--srate",default=None)
 
 def main():
     args = parser.parse_args()
-    if not args.slave_addr:
+    if not args.addr:
         raise Exception("I2C slave address must be specified")
-    if not args.msg_length:
+    if not args.len:
         raise Exception("I2C message length must be specified")
-    if not args.sampling_rate:
+    if not args.srate:
         raise Exception("Sampling rate must be specified")   
     
     BUS = int(args.bus)              # I²C bus number (/dev/i2c-0)

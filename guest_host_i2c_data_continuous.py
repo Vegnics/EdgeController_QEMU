@@ -67,6 +67,8 @@ if __name__ == "__main__":
     for k in range(len(bytes_s2)//2):
         PAYLOAD= bytes_s1[2*k:2*(k+1)]+bytes_s2[2*k:2*(k+1)]
         send_data(HOST_BUS, SLAVE_ADDR, PAYLOAD)
-        sleep(0.6)
+        sleep(0.1)
+    plt.plot(x_signal,y_signal1)
+    plt.figure()
     plt.plot(x_signal,y_signal2)
     plt.show()
