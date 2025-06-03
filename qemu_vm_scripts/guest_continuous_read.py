@@ -128,10 +128,10 @@ def main():
     if not args.sampling_rate:
         raise Exception("Sampling rate must be specified")   
     
-    BUS = int(args.slave_bus)              # I²C bus number (/dev/i2c-0)
-    ADDR = int(args.slave_addr)          # I²C slave 
-    LENGTH = int(args.msg_length)           # Number of bytes to read (registers 0x00 .. 0x03)
-    POLL_INTERVAL = float(1/(float(args.sampling_rate)+2))  # Seconds between polls
+    BUS = int(args.bus)              # I²C bus number (/dev/i2c-0)
+    ADDR = int(args.addr)          # I²C slave 
+    LENGTH = int(args.len)           # Number of bytes to read (registers 0x00 .. 0x03)
+    POLL_INTERVAL = float(1/(float(args.srate)+2))  # Seconds between polls
 
     prev = None
 
