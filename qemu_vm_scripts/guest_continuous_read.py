@@ -9,6 +9,7 @@ ioctls, and prints whenever a new payload appears.
 
 import time
 import sys
+import argparse
 
 # Try importing SMBus, instruct if missing
 try:
@@ -17,11 +18,7 @@ except ImportError:
     print("Error: 'smbus2' module not found. Please install it with:\n\n    pip install smbus2\n")
     sys.exit(1)
 
-# Configuration
-BUS = 0              # I²C bus number (/dev/i2c-0)
-ADDR = 0x1C          # I²C slave address
-LENGTH = 4           # Number of bytes to read (registers 0x00 .. 0x03)
-POLL_INTERVAL = 0.5  # Seconds between polls
+
 
 def read_bytes(bus):
     """Read LENGTH bytes, one register at a time."""
@@ -44,16 +41,44 @@ def clear_buffer(bus):
             # Ignore write errors
             pass
 
+# Configuration
+BUS = 0              # I²C bus number (/dev/i2c-0)
+ADDR = 0x1C          # I²C slave 
+LENGTH = 4           # Number of bytes to read (registers 0x00 .. 0x03)
+POLL_INTERVAL = 0.5  # Seconds between polls
+
+parser = argparse.ArgumentParser(prog='Guest I2C continuous reading',
+                    description='test for i2c comm',
+                    epilog='nothing')
+
+parser.add_argument("--slave-addr",default=None)
+parser.add_argument("--msg-length",default=None)
+parser.add_argument("--slave-bus",default="0")
+
+
 def main():
+    args = parser.parse_args()
+    if not args.slave_addr:
+        raise Exception("I2C slave address must be specified")
+    if not args.msg_length:
+        raise Exception("I2C message length must be specified")  
+    
+    BUS = int(args.slave_bus)              # I²C bus number (/dev/i2c-0)
+    ADDR = int(args.slave_addr)          # I²C slave 
+    LENGTH = int(args.msg_length)           # Number of bytes to read (registers 0x00 .. 0x03)
+    POLL_INTERVAL = 0.5  # Seconds between polls
+
     prev = None
+
     with SMBus(BUS) as bus:
-        print(f"Listening for new data on I²C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
+        print(f"Listening for new data on I2C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
         while True:
             data = read_bytes(bus)
-            if data is not None and data != prev:
-                print("Received data:", [f"0x{b:02X}" for b in data])
-                prev = data
-                clear_buffer(bus)
+            if not any(data):
+                if data is not None and data != prev:
+                    print("Received data:", [f"0x{b:02X}" for b in data])
+                    prev = data
+                    clear_buffer(bus)
             time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":
