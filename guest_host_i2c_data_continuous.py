@@ -18,7 +18,7 @@ def send_data(bus_num: int, slave_addr: int, data: bytes) -> None:
 
 def quantize_data_16(data:np.ndarray,min_val,max_val):
     scale = (2**16-1)
-    quantized = np.clip(np.floor(scale*(data-min_val)/(max_val - min_val)),0,2**32-1)
+    quantized = np.clip(np.floor(scale*(data-min_val)/(max_val - min_val)),0,2**16-1)
     return np.uint32(quantized)  
 
 def qdata_to_bytes(qdata:np.ndarray):
@@ -33,12 +33,14 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--host-bus",default=None)
 parser.add_argument("--slave-addr",default=None)
 
-N_points = 101 
-
+N_points = 201 
+PI = 3.141592
+phase = random.uniform(-PI/2,PI/2)
 x_signal = np.linspace(0,3,N_points)
-y_signal1 = 3.0*np.sin(2*3.141592*0.5*x_signal) + 0.4*np.random.uniform(-1.0,1.0,x_signal.shape)
+y_signal1 = 3.0*np.sin(2*3.141592*0.5*x_signal+ phase) + 0.4*np.random.uniform(-1.0,1.0,x_signal.shape)
 y_signal1 = np.clip(y_signal1,-6.0,6.0)
-y_signal2 = 5.0*np.sin(2*3.141592*2.0*x_signal) + 0.1*np.random.normal(0.0,6.0,x_signal.shape) + 0.2*np.random.uniform(-1.0,1.0,x_signal.shape) 
+
+y_signal2 = 5.0*np.sin(2*3.141592*2.0*x_signal + phase) + 0.1*np.random.normal(0.0,6.0,x_signal.shape) + 0.2*np.random.uniform(-1.0,1.0,x_signal.shape) 
 shot_noise = np.random.binomial(1,0.92,x_signal.shape)
 salt_pep = np.random.binomial(1,0.5,x_signal.shape)
 y_signal2_salt = np.where(np.logical_and(shot_noise==0,salt_pep==1),6.0,y_signal2)
@@ -46,7 +48,7 @@ y_signal2_salt_pepper = np.where(np.logical_and(shot_noise==0,salt_pep==0),-6.0,
 y_signal2 = np.clip(y_signal2_salt_pepper,-6.0,6.0)
 
 quantized_1 = quantize_data_16(y_signal1,-6.0,6.0)
-quantized_2 = quantize_data_16(y_signal2_salt_pepper,-6.0,6.0)
+quantized_2 = quantize_data_16(y_signal2,-6.0,6.0)
 
 bytes_s1 = qdata_to_bytes(quantized_1)
 bytes_s2 = qdata_to_bytes(quantized_2)
@@ -62,13 +64,21 @@ if __name__ == "__main__":
     HOST_BUS   = int(args.host_bus)        # e.g. /dev/i2c-13 if that’s your stub
     SLAVE_ADDR = int(args.slave_addr)      # decimal 28
     #PAYLOAD    = bytes([0xDE, 0xAF, 0xFA, 0xEE])
-    PAYLOAD_STR = "PABLO LINARES"#"NTU RULES!"
+    PAYLOAD_STR = "NTU RULES!"
     PAYLOAD    = bytes([ord(p) for p in PAYLOAD_STR])
     for k in range(len(bytes_s2)//2):
         PAYLOAD= bytes_s1[2*k:2*(k+1)]+bytes_s2[2*k:2*(k+1)]
         send_data(HOST_BUS, SLAVE_ADDR, PAYLOAD)
-        sleep(0.1)
-    plt.plot(x_signal,y_signal1)
+        sleep(0.08)
+    plt.plot(y_signal1)
+    plt.title("Sensor 1 Data (Sent over I2C)")
+    plt.xlabel("Sample idx")
+    plt.ylabel("Signal")
+    plt.grid(True)
     plt.figure()
-    plt.plot(x_signal,y_signal2)
+    plt.plot(y_signal2)
+    plt.title("Sensor 2 Data (Sent over I2C)")
+    plt.xlabel("Sample idx")
+    plt.ylabel("Signal")
+    plt.grid(True)
     plt.show()

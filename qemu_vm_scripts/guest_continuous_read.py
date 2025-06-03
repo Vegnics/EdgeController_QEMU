@@ -95,7 +95,8 @@ class FakeSensorI2C():
             with self.lock:
                 now = time.time()
                 if now - self.readtime > self.timeout and self.buffer:
-                    payload = ",".join(f"{v:.4f}" for v in self.buffer).encode()
+                    #payload = ",".join(f"{v:.4f}" for v in self.buffer).encode()
+                    struct.pack(f"<{len(self.buffer)}f", *self.buffer)
                     print(f"[TIMEOUT] Sending buffer: {self.buffer}")
                     send_data_udp_monitor(payload)
                     self.buffer.clear()

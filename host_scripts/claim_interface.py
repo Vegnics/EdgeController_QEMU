@@ -3,6 +3,11 @@ from scapy.all import Ether, IP, ICMP, sendp, get_if_hwaddr, UDP
 from ipaddress import ip_address, ip_network
 from matplotlib import pyplot as plt
 import numpy as np
+import threading
+import queue
+
+packet_queue = queue.Queue()
+plot_queue = queue.Queue()
 
 TUNSETIFF = 0x400454ca
 IFF_TAP   = 0x0002
@@ -47,6 +52,29 @@ def handle_icmp(pkt, iface, hwsrc):
         return True
     return False
 
+def packet_worker():
+    while True:
+        pkt = packet_queue.get()
+        try:
+            sport = pkt[UDP].sport
+            dport = pkt[UDP].dport
+            src = pkt[IP].src
+            dst = pkt[IP].dst
+            data = bytes(pkt[UDP].payload)
+            log(f"[UDP] {src}:{sport} → {dst}:{dport} | Payload: {data!r}")
+
+            arr = np.frombuffer(pkt[UDP].payload.load, dtype='<f4') 
+            log(f"Converted to NumPy array: {arr} {arr.shape}")
+            plot_queue.put(arr)  # Send to main thread for plotting
+
+        except Exception as e:
+            log(f"Failed to decode/convert payload: {e}")
+        finally:
+            packet_queue.task_done()
+
+
+
+
 def handle_packet(pkt):
     if pkt.haslayer(IP) and pkt.haslayer(UDP):
         src = pkt[IP].src
@@ -60,9 +88,10 @@ def handle_packet(pkt):
             data = bytes(pkt[UDP].payload)
             log(f"[UDP] {src}:{sport} → {dst}:{dport} | Payload: {data!r}")
             try:
-                decoded = data.decode("utf-8")
-                float_list = [float(x) for x in decoded.strip().split(",")]
-                arr = np.array(float_list, dtype=np.float32)
+                #decoded = data.decode("utf-8")
+                #float_list = [float(x) for x in decoded.strip().split(",")]
+                arr = np.frombuffer(pkt[UDP].payload.load, dtype='<f4') 
+                #arr = np.array(float_list, dtype=np.float32)
                 log(f"Converted to NumPy array: {arr} {arr.shape}")
                 plt.plot(arr)
                 plt.title("Sensor Data (Filtered - Received over Ethernet)")
@@ -76,7 +105,7 @@ def handle_packet(pkt):
         else: 
             return False
     return False
-
+"""
 def tap_loop(fd: int, iface: str):
     poller = select.poll()
     poller.register(fd, select.POLLIN)
@@ -94,10 +123,43 @@ def tap_loop(fd: int, iface: str):
                 handle_packet(pkt)
             except Exception as e:
                 log(f"Failed to parse frame: {e}")
+"""
+
+def tap_loop(fd: int, iface: str):
+    poller = select.poll()
+    poller.register(fd, select.POLLIN)
+    hwsrc = get_if_hwaddr(iface)
+    log(f"Listening on {iface} ({hwsrc}) … Ctrl+C to stop")
+    while True:
+        for _fd, _ev in poller.poll():
+            frame = os.read(fd, MTU)
+            if not frame:
+                continue
+            try:
+                pkt = Ether(frame)
+                if handle_icmp(pkt, iface, hwsrc):
+                    continue
+                if pkt.haslayer(IP) and pkt.haslayer(UDP):
+                    src_ip = ip_address(pkt[IP].src)
+                    if src_ip in VM_SUBNET:
+                        packet_queue.put(pkt)
+            except Exception as e:
+                log(f"Failed to parse frame: {e}")
+        if plot_queue.qsize()>1:
+            for k in range(2):
+                arr = plot_queue.get(timeout=0.5)
+                plt.plot(arr)
+                plt.title("Sensor Data (Filtered - Received over Ethernet)")
+                plt.xlabel("Sample idx")
+                plt.ylabel("Signal")
+                plt.grid(True)
+                plt.show()
+
 
 if __name__ == "__main__":
     ensure_up_hairpin(IFACE)
     tap_fd = claim_tap_interface(IFACE)
+    threading.Thread(target=packet_worker, daemon=True).start()
     try:
         tap_loop(tap_fd, IFACE)
     except KeyboardInterrupt:
