@@ -3,3 +3,4 @@ buildroot/*
 qemu
 vhost-device
 spi-mockup-build
+vms
