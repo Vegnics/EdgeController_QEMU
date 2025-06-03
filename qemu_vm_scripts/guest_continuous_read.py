@@ -54,6 +54,7 @@ parser = argparse.ArgumentParser(prog='Guest I2C continuous reading',
 parser.add_argument("--slave-addr",default=None)
 parser.add_argument("--msg-length",default=None)
 parser.add_argument("--slave-bus",default="0")
+parser.add_argument("--sampling-rate",default=None)
 
 
 def main():
@@ -61,12 +62,14 @@ def main():
     if not args.slave_addr:
         raise Exception("I2C slave address must be specified")
     if not args.msg_length:
-        raise Exception("I2C message length must be specified")  
+        raise Exception("I2C message length must be specified")
+    if not args.sampling_rate:
+        raise Exception("Sampling rate must be specified")   
     
     BUS = int(args.slave_bus)              # I²C bus number (/dev/i2c-0)
     ADDR = int(args.slave_addr)          # I²C slave 
     LENGTH = int(args.msg_length)           # Number of bytes to read (registers 0x00 .. 0x03)
-    POLL_INTERVAL = 0.5  # Seconds between polls
+    POLL_INTERVAL = int(1/(arg.sampling_rate+2))  # Seconds between polls
 
     prev = None
 
