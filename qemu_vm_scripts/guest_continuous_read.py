@@ -131,7 +131,7 @@ def main():
     BUS = int(args.slave_bus)              # I²C bus number (/dev/i2c-0)
     ADDR = int(args.slave_addr)          # I²C slave 
     LENGTH = int(args.msg_length)           # Number of bytes to read (registers 0x00 .. 0x03)
-    POLL_INTERVAL = int(1/(args.sampling_rate+2))  # Seconds between polls
+    POLL_INTERVAL = float(1/(float(args.sampling_rate)+2))  # Seconds between polls
 
     prev = None
 
