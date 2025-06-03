@@ -28,7 +28,7 @@ if __name__ == "__main__":
     HOST_BUS   = int(args.host_bus)        # e.g. /dev/i2c-13 if that’s your stub
     SLAVE_ADDR = int(args.slave_addr)      # decimal 28
     #PAYLOAD    = bytes([0xDE, 0xAF, 0xFA, 0xEE])
-    PAYLOAD_STR = "PAULO LINARES"#"NTU RULES!"
+    PAYLOAD_STR = "PABLO LINARES"#"NTU RULES!"
     PAYLOAD    = bytes([ord(p) for p in PAYLOAD_STR])
 
     send_data(HOST_BUS, SLAVE_ADDR, PAYLOAD)

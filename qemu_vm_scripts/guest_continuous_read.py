@@ -74,7 +74,7 @@ def main():
         print(f"Listening for new data on I2C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
         while True:
             data = read_bytes(bus)
-            if data is not None and data != prev:
+            if data is not None:
                 if any(data):
                     print("Received data:", [f"0x{b:02X}" for b in data])
                     prev = data
