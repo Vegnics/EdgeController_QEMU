@@ -36,12 +36,12 @@ parser.add_argument("--slave-addr",default=None)
 N_points = 201 
 PI = 3.141592
 phase = random.uniform(-PI/2,PI/2)
-x_signal = np.linspace(0,3,N_points)
-y_signal1 = 3.0*np.sin(2*3.141592*0.5*x_signal+ phase) + 0.4*np.random.uniform(-1.0,1.0,x_signal.shape)
+x_signal = np.linspace(0,2.5,N_points)
+y_signal1 = 3.0*np.sin(2*3.141592*0.8*x_signal+ phase) + 0.3*np.random.uniform(-1.0,1.0,x_signal.shape)
 y_signal1 = np.clip(y_signal1,-6.0,6.0)
 
 y_signal2 = 5.0*np.sin(2*3.141592*2.0*x_signal + phase) + 0.1*np.random.normal(0.0,6.0,x_signal.shape) + 0.2*np.random.uniform(-1.0,1.0,x_signal.shape) 
-shot_noise = np.random.binomial(1,0.92,x_signal.shape)
+shot_noise = np.random.binomial(1,0.94,x_signal.shape)
 salt_pep = np.random.binomial(1,0.5,x_signal.shape)
 y_signal2_salt = np.where(np.logical_and(shot_noise==0,salt_pep==1),6.0,y_signal2)
 y_signal2_salt_pepper = np.where(np.logical_and(shot_noise==0,salt_pep==0),-6.0,y_signal2_salt)
