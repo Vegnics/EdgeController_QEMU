@@ -113,10 +113,10 @@ parser = argparse.ArgumentParser(prog='Guest I2C continuous reading',
                     description='test for i2c comm',
                     epilog='nothing')
 
-parser.add_argument("--slave-addr",default=None)
-parser.add_argument("--msg-length",default=None)
-parser.add_argument("--slave-bus",default="0")
-parser.add_argument("--sampling-rate",default=None)
+parser.add_argument("--addr",default=None)
+parser.add_argument("--len",default=None)
+parser.add_argument("--bus",default="0")
+parser.add_argument("--srate",default=None)
 
 
 def main():
