@@ -145,8 +145,8 @@ def main():
             data = read_bytes(bus,LENGTH,ADDR)
             if data is not None:
                 if any(data):
-                    sensor1.filter(data[0:2])
-                    sensor2.filter(data[2:4])
+                    sensor1.filter(bytes(data[0:2]))
+                    sensor2.filter(bytes(data[2:4]))
                     print("Received data:", [f"0x{b:02X}" for b in data])
                     prev = data
                     clear_buffer(bus,LENGTH,ADDR)
