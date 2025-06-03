@@ -26,12 +26,12 @@ MONITOR_IP = "172.24.100.9"
 MONITOR_PORT = 5555
 
 
-def read_bytes(bus):
+def read_bytes(bus,length,addr):
     """Read LENGTH bytes, one register at a time."""
     data = []
-    for reg in range(LENGTH):
+    for reg in range(length):
         try:
-            byte = bus.read_byte_data(ADDR, reg)
+            byte = bus.read_byte_data(addr, reg)
         except OSError:
             # NACK or bus error; no valid data right now
             return None
@@ -39,11 +39,11 @@ def read_bytes(bus):
     return data
 
 
-def clear_buffer(bus):
+def clear_buffer(bus,length,addr):
     """Write zeroes to all registers to clear the buffer."""
-    for reg in range(LENGTH):
+    for reg in range(length):
         try:
-            bus.write_byte_data(ADDR, reg, 0x00)
+            bus.write_byte_data(addr, reg, 0x00)
         except OSError:
             # Ignore write errors
             pass
@@ -104,10 +104,10 @@ class FakeSensorI2C():
 
 
 # Configuration
-BUS = 0              # I²C bus number (/dev/i2c-0)
-ADDR = 0x1C          # I²C slave 
-LENGTH = 4           # Number of bytes to read (registers 0x00 .. 0x03)
-POLL_INTERVAL = 0.5  # Seconds between polls
+#BUS = 0              # I²C bus number (/dev/i2c-0)
+#ADDR = 0x1C          # I²C slave 
+#LENGTH = 4           # Number of bytes to read (registers 0x00 .. 0x03)
+#POLL_INTERVAL = 0.5  # Seconds between polls
 
 parser = argparse.ArgumentParser(prog='Guest I2C continuous reading',
                     description='test for i2c comm',
@@ -141,14 +141,14 @@ def main():
     with SMBus(BUS) as bus:
         print(f"Listening for new data on I2C bus {BUS}, address 0x{ADDR:02X} (poll every {POLL_INTERVAL}s)...")
         while True:
-            data = read_bytes(bus)
+            data = read_bytes(bus,LENGTH,ADDR)
             if data is not None:
                 if any(data):
                     sensor1.filter(data[0:2])
                     sensor2.filter(data[2:4])
                     print("Received data:", [f"0x{b:02X}" for b in data])
                     prev = data
-                    clear_buffer(bus)
+                    clear_buffer(bus,LENGTH,ADDR)
             time.sleep(POLL_INTERVAL)
 
 if __name__ == "__main__":
